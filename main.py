@@ -1,5 +1,7 @@
 import json
 
+SEED = 33
+
 
 def calculate(val):
     data = json.load(open('data.json', 'r'))
@@ -23,30 +25,42 @@ def calculate(val):
     return calc_node(val)
 
 
-def write_file(nodes):
+def write_file(nodes, seed=SEED):
+    # update new nodes to data.json
     data = json.load(open('data.json', 'r'))
 
-    nodes.sort()
     new_data = {
         str(node): {
-            'children': nodes[i + 1 :],
+            'children': [] if i + 1 == len(nodes) else nodes[i + 1 :],
             'parent': 0 if i == 0 else nodes[i - 1],
             'numberOfChildren': len(nodes[i + 1 :]),
         }
         for i, node in enumerate(nodes)
     }
     data.update(new_data)
+    data.update({
+        str(seed): {
+            'children': nodes,
+            'numberOfChildren': len(nodes)
+            }
+        }
+    )
+
     keys = sorted(int(a) for a in data.keys())
     data = {key: data[str(key)] for key in keys}
     with open('data.json', 'w') as f:
         json.dump(data, f, indent=4)
 
 def main():
-    nodes = calculate(7)
-    print(nodes)
-    write_file(nodes)
+    data = json.load(open('data.json', 'r'))
+    if SEED in data:
+        print(data[str(SEED)]['children'])
+        return data[str(SEED)]['children']
+    else:   
+        nodes = calculate(SEED)
+        print(nodes)
+        write_file(nodes, SEED)
     
-
     # merge new_data with data
 
 if __name__ == '__main__':
